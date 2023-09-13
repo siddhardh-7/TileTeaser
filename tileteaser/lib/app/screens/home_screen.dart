@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:tileteaser/app/start_button.dart';
 import 'package:tileteaser/app/utils/AppTheme.dart';
@@ -16,13 +18,25 @@ class _HomeScreenState extends State<HomeScreen> {
   int gridSize = 3;
   int totalSize = 9;
   int blankIndex = 0;
+  bool isStarted = false;
+  late Timer time ;
 
+  void startTimer() {
+    time = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (isStarted) {
+        setState(() {
+          timePassed++;
+        });
+      }
+    });
+  }
   @override
   void initState() {
     super.initState();
     indicesList.shuffle();
     totalSize = gridSize*gridSize;
     blankIndex = indicesList.indexOf(0);
+    startTimer();
   }
 
   @override
@@ -85,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ? GestureDetector(
                             onTap: () {
                               setState(() {
+                                isStarted = true;
                                 if ((index+1)%gridSize == (blankIndex+1)%gridSize && (index - blankIndex).abs() == 3) {
                                   indicesList[blankIndex] =  indicesList[index];
                                   indicesList[index] = 0;
@@ -136,17 +151,45 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            StartButton(),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  indicesList.shuffle();
+                  totalMoves = 0;
+                  timePassed = 0;
+                  blankIndex = indicesList.indexOf(0);
+                  isStarted = false;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                margin: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppTheme.mainColor,
+                  borderRadius: BorderRadius.circular(50),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      offset: Offset(5, 5),
+                      blurRadius: 10,
+                    )
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    'Start',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 30,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            )
           ],
         ),
       ),
     );
-  }
-
-  void clickGrid(int index) {
-    setState(() {
-      indicesList[indicesList.indexOf(0)] = indicesList[index];
-      indicesList[index] = 0;
-    });
   }
 }
