@@ -16,7 +16,7 @@ class StartButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppTheme.mainColor,
           borderRadius: BorderRadius.circular(50),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: Colors.black12,
               offset: Offset(5, 5),
@@ -24,7 +24,7 @@ class StartButton extends StatelessWidget {
             )
           ],
         ),
-        child: Center(
+        child: const Center(
           child: Text(
             'Start',
             style: TextStyle(
