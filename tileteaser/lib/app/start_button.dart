@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:tileteaser/app/utils/AppTheme.dart';
 
 class StartButton extends StatelessWidget {
   const StartButton({
     super.key,
-    required this.mainColor,
   });
-
-  final Color mainColor;
 
   @override
   Widget build(BuildContext context) {
@@ -16,14 +14,7 @@ class StartButton extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         margin: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              mainColor,
-              mainColor,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: AppTheme.mainColor,
           borderRadius: BorderRadius.circular(50),
           boxShadow: [
             BoxShadow(
