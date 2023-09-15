@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:tileteaser/app/utils/AppTheme.dart';
 
@@ -10,7 +10,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>{
+
   List<int> indicesList = [0, 1, 2, 3, 4, 5, 6, 7, 8];
   int totalMoves = 0;
   int timePassed = 0;
@@ -50,30 +51,24 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void showWinningPopUp(BuildContext context) {
-    showGeneralDialog(
-      context: context,
-      pageBuilder: (ctx, a1, a2) {
-        return Container();
-      },
-      transitionBuilder: (ctx, a1, a2, child) {
-        var curve = Curves.easeInOut.transform(a1.value);
-        return Transform.scale(
-          scale: curve,
-          child: AlertDialog(
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(8))),
+
             title: const Center(child: Text("You Won!!")),
             content: Text(
               "You won the game by $totalMoves moves in $timePassed seconds",
               textAlign: TextAlign.center,
-              style: const TextStyle(
-
-              ),
             ),
             actions: <Widget>[
               Center(
                 child: GestureDetector(
                   onTap: () {
                     startGame();
-                    Navigator.of(ctx).pop();
+                    Navigator.of(context).pop();
                   },
                   child: Container(
                     decoration: BoxDecoration(
@@ -89,11 +84,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ],
-          ),
-        );
-      },
-      transitionDuration: const Duration(milliseconds: 300),
-    );
+          );
+        });
   }
 
   @override
@@ -173,6 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   indicesList[index] = 0;
                                   blankIndex = index;
                                   totalMoves++;
+                                  FlameAudio.play("swap.mp3");
                                 } else if (index ~/ gridSize ==
                                         blankIndex ~/ gridSize &&
                                     (index - blankIndex).abs() == 1) {
@@ -180,6 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   indicesList[index] = 0;
                                   blankIndex = index;
                                   totalMoves++;
+                                  FlameAudio.play("swap.mp3");
                                 }
                               });
                               if (isGameWin()) {
