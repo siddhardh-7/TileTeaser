@@ -15,8 +15,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<int> indicesList = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-  List<int> intialIndicesList = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+  List<int> indicesList = [1, 2, 3, 4, 5, 6, 7, 8,0];
   List<List<int>> path = [];
   int totalMoves = 0;
   int timePassed = 0;
@@ -51,7 +50,6 @@ class _HomeScreenState extends State<HomeScreen> {
       while (!isSolvable(indicesList)) {
         indicesList.shuffle();
       }
-      intialIndicesList = List.from(indicesList);
       totalMoves = 0;
       timePassed = 0;
       blankIndex = indicesList.indexOf(0);
@@ -149,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   MaterialPageRoute(
                     builder: (context) => SolutionScreen(
                       gridSize: gridSize,
-                      path: path.isEmpty ? [intialIndicesList] : path,
+                      path: path.isEmpty ? [indicesList] : path,
                     ),
                   ),
                 );

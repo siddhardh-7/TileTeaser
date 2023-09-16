@@ -91,7 +91,7 @@ List<List<int>> solvePuzzle(List<int> initialState, int gridSize) {
     if (state.isFinalState(finalState)) {
       return state.path;
     }
-    if(state.path.length == 12){
+    if(state.path.length == 10){
       return state.path;
     }
     queue.addAll(state.changeableTiles.map((nextState) => StateNode(nextState,
