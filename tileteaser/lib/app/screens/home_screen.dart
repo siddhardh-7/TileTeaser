@@ -1,18 +1,23 @@
 import 'dart:async';
-import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
-import 'package:tileteaser/app/utils/AppTheme.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:tileteaser/app/screens/solution_screen.dart';
+import 'package:tileteaser/app/utils/app_theme.dart';
+import 'package:tileteaser/app/utils/puzzle_solve_algo.dart';
 
 class HomeScreen extends StatefulWidget {
+  static String routeName = '/';
+
   const HomeScreen({Key? key}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>{
-
+class _HomeScreenState extends State<HomeScreen> {
   List<int> indicesList = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+  List<int> intialIndicesList = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+  List<List<int>> path = [];
   int totalMoves = 0;
   int timePassed = 0;
   int gridSize = 3;
@@ -40,12 +45,18 @@ class _HomeScreenState extends State<HomeScreen>{
     return true;
   }
 
-  void startGame() {
+  Future<void> startGame () async {
     setState(() {
       indicesList.shuffle();
+      while (!isSolvable(indicesList)) {
+        indicesList.shuffle();
+      }
+      intialIndicesList = List.from(indicesList);
       totalMoves = 0;
       timePassed = 0;
       blankIndex = indicesList.indexOf(0);
+      totalSize = gridSize * gridSize;
+      startTimer();
       isStarted = false;
     });
   }
@@ -55,9 +66,8 @@ class _HomeScreenState extends State<HomeScreen>{
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            shape: RoundedRectangleBorder(
+            shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(8))),
-
             title: const Center(child: Text("You Won!!")),
             content: Text(
               "You won the game by $totalMoves moves in $timePassed seconds",
@@ -88,13 +98,23 @@ class _HomeScreenState extends State<HomeScreen>{
         });
   }
 
+  // A utility function to count inversions in given array 'arr[]'
+  bool isSolvable(List<int> puzzle) {
+    int inversionCount = 0;
+    for (int i = 0; i < gridSize * gridSize - 1; i++) {
+      for (int j = i + 1; j < gridSize * gridSize; j++) {
+        if (puzzle[i] > puzzle[j] && puzzle[i] != 0 && puzzle[j] != 0) {
+          inversionCount++;
+        }
+      }
+    }
+    return inversionCount % 2 == 0;
+  }
+
   @override
   void initState() {
     super.initState();
-    indicesList.shuffle();
-    totalSize = gridSize * gridSize;
-    blankIndex = indicesList.indexOf(0);
-    startTimer();
+    startGame();
   }
 
   @override
@@ -107,28 +127,58 @@ class _HomeScreenState extends State<HomeScreen>{
       ),
       home: Scaffold(
         appBar: AppBar(
+          leading: const SizedBox(),
           title: Center(
             child: Text(
               "Tile Teaser",
-              style: TextStyle(
-                color: AppTheme.mainColor,
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
+              style: GoogleFonts.kaushanScript(
+                textStyle: TextStyle(
+                  color: AppTheme.mainColor,
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
+          actions: [
+            GestureDetector(
+              onTap: () {
+                List<List<int>> path = solvePuzzle(indicesList, gridSize);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SolutionScreen(
+                      gridSize: gridSize,
+                      path: path.isEmpty ? [intialIndicesList] : path,
+                    ),
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Icon(
+                  Icons.question_mark_rounded,
+                  color: AppTheme.mainColor,
+                  size: 24,
+                ),
+              ),
+            ),
+          ],
         ),
         body: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            const SizedBox(),
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   "Moves: ",
-                  style: TextStyle(
-                    fontSize: 24,
+                  style: GoogleFonts.spaceMono(
+                    textStyle: const TextStyle(
+                      fontSize: 24,
+                    ),
                   ),
                 ),
                 Text(
@@ -158,27 +208,22 @@ class _HomeScreenState extends State<HomeScreen>{
                             onTap: () {
                               setState(() {
                                 isStarted = true;
-                                if ((index + 1) % gridSize ==
-                                        (blankIndex + 1) % gridSize &&
-                                    (index - blankIndex).abs() == 3) {
+                                if (((index + 1) % gridSize ==
+                                            (blankIndex + 1) % gridSize &&
+                                        (index - blankIndex).abs() == 3) ||
+                                    (index ~/ gridSize ==
+                                            blankIndex ~/ gridSize &&
+                                        (index - blankIndex).abs() == 1)) {
                                   indicesList[blankIndex] = indicesList[index];
                                   indicesList[index] = 0;
                                   blankIndex = index;
                                   totalMoves++;
-                                  FlameAudio.play("swap.mp3");
-                                } else if (index ~/ gridSize ==
-                                        blankIndex ~/ gridSize &&
-                                    (index - blankIndex).abs() == 1) {
-                                  indicesList[blankIndex] = indicesList[index];
-                                  indicesList[index] = 0;
-                                  blankIndex = index;
-                                  totalMoves++;
-                                  FlameAudio.play("swap.mp3");
+                                  // FlameAudio.play("swap.mp3");
+                                  if (isGameWin()) {
+                                    showWinningPopUp(context);
+                                  }
                                 }
                               });
-                              if (isGameWin()) {
-                                showWinningPopUp(context);
-                              }
                             },
                             child: Container(
                                 alignment: Alignment.center,
@@ -201,10 +246,12 @@ class _HomeScreenState extends State<HomeScreen>{
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   "Time: ",
-                  style: TextStyle(
-                    fontSize: 24,
+                  style: GoogleFonts.spaceMono(
+                    textStyle: const TextStyle(
+                      fontSize: 24,
+                    ),
                   ),
                 ),
                 Text(
@@ -235,18 +282,20 @@ class _HomeScreenState extends State<HomeScreen>{
                     )
                   ],
                 ),
-                child: const Center(
+                child: Center(
                   child: Text(
                     'Start',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 30,
-                      fontWeight: FontWeight.w500,
+                    style: GoogleFonts.kaushanScript(
+                      textStyle: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 30,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
